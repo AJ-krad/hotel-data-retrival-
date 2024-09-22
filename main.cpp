@@ -1,230 +1,153 @@
-#include<iostream>
-#include<string>
-#include<iomanip> 
+#include <iostream>
+#include <string>
+#include <iomanip>
 using namespace std;
 
-// store information about a hotel room
-struct roominfo{
-    int roomnumber;
-    string guestname;
-    string checkindate;
-    string checkoutdate;
-    double roomrate; 
+// Room information structure
+struct RoomInfo {
+    int roomNumber;
+    string guestName;
+    string checkInDate;
+    string checkOutDate;
+    double roomRate;
 };
 
-// Node structure
-struct treenode{
-    roominfo data;
-    treenode* left;
-    treenode* right;
-    treenode(roominfo info):data(info),left(nullptr),right(nullptr){}
+// Node structure for the BST
+struct Node {
+    RoomInfo info;
+    Node* left;
+    Node* right;
+
+    // Constructor without initializer list
+    Node(RoomInfo& data) {
+        info = data;  // Assign room information
+        left = NULL;  // Initialize left child to NULL
+        right = NULL; // Initialize right child to NULL
+    }
 };
 
-// binary search tree class
-class hotelTree{
+// HotelManager class managing room info using BST
+class HotelManager {
 private:
-    treenode* root;
+    Node* root;
 
-    // insert a new node
-    treenode* insert(treenode* node,roominfo info){
-        if(node==nullptr){
-            return new treenode(info);
-        }
-        if(info.roomnumber<node->data.roomnumber){
-            node->left=insert(node->left,info);
-        }else if(info.roomnumber>node->data.roomnumber){
-            node->right=insert(node->right,info);
-        }
-        return node;
+public: // Make the constructor public
+    // Constructor without initializer list
+    HotelManager() {
+        root = NULL; // Initialize root to NULL
     }
 
-    // search for a room
-    treenode* search(treenode* node,int roomnumber){
-        if(node==nullptr || node->data.roomnumber==roomnumber){
-            return node;
-        }
-        if(roomnumber<node->data.roomnumber){
-            return search(node->left,roomnumber);
-        }else{
-            return search(node->right,roomnumber);
-        }
-    }
-
-    // update room information
-    treenode* updateroom(treenode* node,int roomnumber,roominfo newinfo){
-        if(node==nullptr){
-            return nullptr;
-        }
-        if(roomnumber<node->data.roomnumber){
-            node->left=updateroom(node->left,roomnumber,newinfo);
-        }else if(roomnumber>node->data.roomnumber){
-            node->right=updateroom(node->right,roomnumber,newinfo);
-        }else{
-            node->data=newinfo;
+    // Insert a room into the BST
+    Node* insert(Node* node, RoomInfo& info) {
+        if (node == NULL) {
+            node = new Node(info); // Create new node if empty spot is found
+        } else if (info.roomNumber < node->info.roomNumber) {
+            node->left = insert(node->left, info); // Insert in the left subtree
+        } else if (info.roomNumber > node->info.roomNumber) {
+            node->right = insert(node->right, info); // Insert in the right subtree
         }
         return node;
     }
 
-    // print the tree in-order
-    void inorderprint(treenode* node){
-        if(node!=nullptr){
-            inorderprint(node->left);
-            cout<<"room number: "<<node->data.roomnumber
-                 <<", guest name: "<<node->data.guestname
-                 <<", check-in date: "<<node->data.checkindate
-                 <<", check-out date: "<<node->data.checkoutdate
-                 <<", room rate: rs."<<fixed<<setprecision(2)<<node->data.roomrate
-                 <<endl;
-            inorderprint(node->right);
+    // Search for a room in the BST by room number
+    Node* search(Node* node, int roomNumber) {
+        if (node == NULL || node->info.roomNumber == roomNumber) {
+            return node; // Room found or end of tree
+        }
+        if (roomNumber < node->info.roomNumber) {
+            return search(node->left, roomNumber); // Search in the left subtree
+        }
+        return search(node->right, roomNumber); // Search in the right subtree
+    }
+
+    // In-order traversal to print all rooms
+    void inorder(Node* node) {
+        if (node == NULL) return; // Base case: Empty node
+        inorder(node->left); // Visit left subtree
+        cout << "Room: " << node->info.roomNumber
+             << ", Guest: " << node->info.guestName
+             << ", Rate: Rs." << fixed << setprecision(2) << node->info.roomRate
+             << endl;
+        inorder(node->right); // Visit right subtree
+    }
+
+    // Insert a new room
+    void insertRoom(RoomInfo& info) {
+        root = insert(root, info); // Call insert on root
+        cout << "Room added successfully." << endl;
+    }
+
+    // Search and print a room by room number
+    void searchRoom(int roomNumber) {
+        Node* result = search(root, roomNumber); // Search for the room
+        if (result != NULL) {
+            cout << "Room found: " << result->info.roomNumber
+                 << ", Guest: " << result->info.guestName
+                 << ", Rate: Rs." << fixed << setprecision(2) << result->info.roomRate
+                 << endl;
+        } else {
+            cout << "Room not found." << endl;
         }
     }
 
-    // display rooms by date range
-    void printroomsbydaterange(treenode* node,string startdate,string enddate){
-        if(node!=nullptr){
-            printroomsbydaterange(node->left,startdate,enddate);
-            if(node->data.checkindate<=enddate && node->data.checkoutdate>=startdate){
-                cout<<"room number: "<<node->data.roomnumber
-                     <<", guest name: "<<node->data.guestname
-                     <<", check-in date: "<<node->data.checkindate
-                     <<", check-out date: "<<node->data.checkoutdate
-                     <<", room rate: rs."<<fixed<<setprecision(2)<<node->data.roomrate
-                     <<endl;
-            }
-            printroomsbydaterange(node->right,startdate,enddate);
+    // Print all rooms (in-order traversal)
+    void printAllRooms() {
+        if (root == NULL) {
+            cout << "No rooms available." << endl;
+        } else {
+            inorder(root); // Call in-order traversal on root
         }
-    }
-
-public:
-    hotelTree():root(nullptr){}
-
-    // insert a new room information
-    void insertroom(roominfo info){
-        root=insert(root, info);
-    }
-
-    // search for a room
-    void searchroom(int roomnumber){
-        treenode* result=search(root,roomnumber);
-        if(result!=nullptr){
-            cout<<"room number: "<<result->data.roomnumber
-                 <<", guest name: "<<result->data.guestname
-                 <<", check-in date: "<<result->data.checkindate
-                 <<", check-out date: "<<result->data.checkoutdate
-                 <<", room rate: rs."<<fixed<<setprecision(2)<<result->data.roomrate
-                 <<endl;
-        }else{
-            cout<<"room number "<<roomnumber<<" not found."<<endl;
-        }
-    }
-
-    // update room information
-    void updateroominfo(int roomnumber,roominfo newinfo){
-        root=updateroom(root,roomnumber,newinfo);
-    }
-
-    // print all rooms
-    void printallrooms(){
-        inorderprint(root);
-    }
-
-    // display room details based on a specific date range
-    void printroomsbydaterange(string startdate, string enddate){
-        cout<<"rooms available from "<<startdate<<" to "<<enddate<<":"<<endl;
-        printroomsbydaterange(root,startdate,enddate);
     }
 };
 
-int main(){
-    hotelTree hotel;
-
-    // Insert initial room information
-    hotel.insertroom({13,"Shivkumar","2024-08-01","2024-08-07",13});
-    hotel.insertroom({205,"Abhishek","2024-08-05","2024-08-10",150});
-    hotel.insertroom({303,"Satyam","2024-08-10","2024-08-15",180});
-    hotel.insertroom({150,"Rohit","2024-08-01","2024-08-03",100});
-    hotel.insertroom({404,"Himanshu","2024-08-15","2024-08-20",200});
-
+int main() {
+    HotelManager manager; // Now accessible
     int choice;
 
-    do{
-        cout<<"\nhotel management system menu:\n";
-        cout<<"1.insert room information\n";
-        cout<<"2.search room\n";
-        cout<<"3.update room information\n";
-        cout<<"4.print all rooms\n";
-        cout<<"5.print rooms by date range\n";
-        cout<<"6.exit\n";
-        cout<<"enter your choice: ";
-        cin>>choice;
-        cin.ignore();
+    do {
+        cout << "\nHotel Management Menu:\n";
+        cout << "1. Add Room\n";
+        cout << "2. Search Room\n";
+        cout << "3. View All Rooms\n";
+        cout << "4. Exit\n";
+        cout << "Enter your choice: ";
+        cin >> choice;
 
-        switch(choice){
-            case 1:{
-                roominfo info;
-                cout<<"enter room number: ";
-                cin>>info.roomnumber;
-                cin.ignore();
-                cout<<"enter guest name: ";
-                getline(cin,info.guestname);
-                cout<<"enter check-in date (yyyy-mm-dd): ";
-                getline(cin,info.checkindate);
-                cout<<"enter check-out date (yyyy-mm-dd): ";
-                getline(cin,info.checkoutdate);
-                cout<<"enter room rate (in rs.): ";
-                cin>>info.roomrate;
-                cin.ignore();
-                hotel.insertroom(info);
+        switch (choice) {
+            case 1: {
+                RoomInfo info;
+                cout << "Enter room number: ";
+                cin >> info.roomNumber;
+                cout << "Enter guest name (single word): ";
+                cin >> info.guestName;
+                cout << "Enter check-in date (format: YYYY-MM-DD): ";
+                cin >> info.checkInDate;
+                cout << "Enter check-out date (format: YYYY-MM-DD): ";
+                cin >> info.checkOutDate;
+                cout << "Enter room rate: ";
+                cin >> info.roomRate;
+                manager.insertRoom(info); // Insert room info
                 break;
             }
-            case 2:{
-                int roomnumber;
-                cout<<"enter room number to search: ";
-                cin>>roomnumber;
-                hotel.searchroom(roomnumber);
+            case 2: {
+                int roomNumber;
+                cout << "Enter room number to search: ";
+                cin >> roomNumber;
+                manager.searchRoom(roomNumber); // Search for the room
                 break;
             }
-            case 3:{
-                int roomnumber;
-                roominfo newinfo;
-                cout<<"enter room number to update: ";
-                cin>>roomnumber;
-                cin.ignore();
-                cout<<"enter new guest name: ";
-                getline(cin,newinfo.guestname);
-                cout<<"enter new check-in date (yyyy-mm-dd): ";
-                getline(cin,newinfo.checkindate);
-                cout<<"enter new check-out date (yyyy-mm-dd): ";
-                getline(cin,newinfo.checkoutdate);
-                cout<<"enter new room rate (in rs.): ";
-                cin>>newinfo.roomrate;
-                cin.ignore();
-                newinfo.roomnumber=roomnumber;
-                hotel.updateroominfo(roomnumber,newinfo);
+            case 3: {
+                manager.printAllRooms(); // Print all rooms
                 break;
             }
-            case 4:{
-                hotel.printallrooms();
-                break;
-            }
-            case 5:{
-                string startdate,enddate;
-                cout<<"enter start date (yyyy-mm-dd): ";
-                getline(cin,startdate);
-                cout<<"enter end date (yyyy-mm-dd): ";
-                getline(cin,enddate);
-                hotel.printroomsbydaterange(startdate,enddate);
-                break;
-            }
-            case 6:{
-                cout<<"exiting the system."<<endl;
+            case 4: {
+                cout << "Exiting..." << endl;
                 break;
             }
             default:
-                cout<<"invalid choice. please try again."<<endl;
-                break;
+                cout << "Invalid choice. Try again." << endl;
         }
-    }while(choice!=6);
+    } while (choice != 4);
 
     return 0;
 }
